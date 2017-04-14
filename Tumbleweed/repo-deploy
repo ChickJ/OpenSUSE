@@ -1,0 +1,5 @@
+#!/bin/bash
+# This script deploys the repository to the local server.
+
+CWD=$(dirname $(realpath -s $0))
+rsync -av "$CWD" "/srv/suse/"

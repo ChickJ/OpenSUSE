@@ -1,0 +1,8 @@
+PRODUCT Homelan
+VERSION 0.0.1
+VENDOR homelan.org
+LABEL Homelan (SUSE LINUX Tumbleweed)
+ARCH.x86_64 x86_64 i686 i686 i586 noarch
+DEFAULTBASE x86_64
+DESCRDIR setup/descr
+DATADIR RPMS

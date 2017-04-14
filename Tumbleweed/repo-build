@@ -1,0 +1,17 @@
+#!/bin/bash
+# This script will build an openSUSE Tumbleweed YAST
+# repository according to the instructions at the
+# following link.
+#
+# https://en.opensuse.org/SDB:Creating_YaST_installation_sources
+
+CWD=$(dirname $(realpath -s $0))
+
+ls -A1 > "$CWD/directory.yast"
+
+if [ -d "$CWD/setup" ]; then
+  rm -r "$CWD/setup/"
+fi
+
+create_package_descr -l en -C -D -d "$CWD/RPMS/"
+create_sha1sums -2 "$CWD"
