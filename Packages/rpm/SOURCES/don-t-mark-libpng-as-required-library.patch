@@ -1,0 +1,56 @@
+Index: freetype-2.6.1/builds/unix/configure
+===================================================================
+--- freetype-2.6.1.orig/builds/unix/configure
++++ freetype-2.6.1/builds/unix/configure
+@@ -14096,7 +14096,6 @@ esac
+ # entries in Requires.private are separated by commas;
+ REQUIRES_PRIVATE="$zlib_reqpriv,     \
+                   $bzip2_reqpriv,    \
+-                  $libpng_reqpriv,   \
+                   $harfbuzz_reqpriv"
+ # beautify
+ REQUIRES_PRIVATE=`echo "$REQUIRES_PRIVATE" \
+@@ -14110,7 +14109,6 @@ REQUIRES_PRIVATE=`echo "$REQUIRES_PRIVAT
+
+ LIBS_PRIVATE="$zlib_libspriv     \
+               $bzip2_libspriv    \
+-              $libpng_libspriv   \
+               $harfbuzz_libspriv \
+               $ft2_extra_libs"
+ # beautify
+@@ -14122,7 +14120,6 @@ LIBS_PRIVATE=`echo "$LIBS_PRIVATE"  \
+ LIBSSTATIC_CONFIG="-lfreetype               \
+                    $zlib_libsstaticconf     \
+                    $bzip2_libsstaticconf    \
+-                   $libpng_libsstaticconf   \
+                    $harfbuzz_libsstaticconf \
+                    $ft2_extra_libs"
+ # remove -L/usr/lib and -L/usr/lib64 since `freetype-config' adds them later
+Index: freetype-2.6.1/builds/unix/configure.raw
+===================================================================
+--- freetype-2.6.1.orig/builds/unix/configure.raw
++++ freetype-2.6.1/builds/unix/configure.raw
+@@ -918,7 +918,6 @@ esac
+ # entries in Requires.private are separated by commas;
+ REQUIRES_PRIVATE="$zlib_reqpriv,     \
+                   $bzip2_reqpriv,    \
+-                  $libpng_reqpriv,   \
+                   $harfbuzz_reqpriv"
+ # beautify
+ REQUIRES_PRIVATE=`echo "$REQUIRES_PRIVATE" \
+@@ -932,7 +931,6 @@ REQUIRES_PRIVATE=`echo "$REQUIRES_PRIVAT
+
+ LIBS_PRIVATE="$zlib_libspriv     \
+               $bzip2_libspriv    \
+-              $libpng_libspriv   \
+               $harfbuzz_libspriv \
+               $ft2_extra_libs"
+ # beautify
+@@ -944,7 +942,6 @@ LIBS_PRIVATE=`echo "$LIBS_PRIVATE"  \
+ LIBSSTATIC_CONFIG="-lfreetype               \
+                    $zlib_libsstaticconf     \
+                    $bzip2_libsstaticconf    \
+-                   $libpng_libsstaticconf   \
+                    $harfbuzz_libsstaticconf \
+                    $ft2_extra_libs"
+ # remove -L/usr/lib and -L/usr/lib64 since `freetype-config' adds them later
