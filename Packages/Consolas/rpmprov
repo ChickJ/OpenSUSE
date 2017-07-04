@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# This script will provision all the needed files to make an RPM package
+# for the Microsoft Consolas font.
+SCRIPT_DIR=$(dirname $(realpath -s "$0"))
+PKG_DIR=$(dirname "${SCRIPT_DIR}")
+
+# ******************************************************************************
+# BEGIN Variables
+# ******************************************************************************
+RPM_DIR="${PKG_DIR}/.Build/RPM"
+RPM_NAME=microsoft-consolas-truetype-fonts
+RPM_RELEASE=2
+RPM_VERSION=0.0.1
+RPM_PATH=${RPM_NAME}-${RPM_VERSION}
+RPM_SOURCES="${PKG_DIR}/.Build/RPM/SOURCES"
+RPM_SPECS="${PKG_DIR}/.Build/RPM/SPECS"
+RPM_TMP="${PKG_DIR}/.Build/RPM/tmp"
+
+SPEC_PATH="${RPM_SPECS}/${RPM_PATH}.spec"
+TAR_PATH="${RPM_SOURCES}/${RPM_PATH}.tar.gz"
+SOURCES_TAR="${RPM_SOURCES}/${RPM_PATH}.tar.gz"
+# ******************************************************************************
+# END Variables
+# ******************************************************************************
+
+# Print header
+echo -e Provisioning ${RPM_NAME} rpmbuild files . . .
+
+# Copy private files to build files.
+rsync -r "${SCRIPT_DIR}/Private/" "${SCRIPT_DIR}/Build/"
+
+# Ensure the RPM build environment exists
+mkdir -p "${RPM_DIR}/"{BUILD,RPMS,SPECS,SRPMS,SOURCES,tmp/${RPM_PATH}}
+
+# Compress all the build artifacts for use as a TAR file.
+rm -f "${TAR_PATH}"
+tar -C "${SCRIPT_DIR}" -zcf "${TAR_PATH}" Build
+
+# Generate the spec file
+cat > "${SPEC_PATH}" <<EOM
+%define _topdir ${RPM_DIR}
+%define _tmppath ${RPM_TMP}
+%define buildroot ${RPM_TMP}/${RPM_PATH}
+
+BuildArch: noarch
+BuildRoot: %{buildroot}
+Group: System/X11/Fonts
+License: Proprietary
+Name: ${RPM_NAME}
+Prefix: /usr
+Release: ${RPM_RELEASE}
+Source0: file://${TAR_PATH}
+Summary: Microsoft Consolas Font
+Vendor: Microsoft
+Version: ${RPM_VERSION}
+Url: https://www.microsoft.com/typography/fonts/font.aspx?FMID=1924
+
+%description
+Consolas is a monospaced (non-proportional) typeface, designed by Luc(as) de
+Groot. It is a part of a suite of fonts that take advantage of Microsoft's
+ClearType font rendering technology. It is included with Windows since Windows
+Vista, Microsoft Office 2007 and Microsoft Visual Studio 2010, and is available
+for download from Microsoft. It is the only standard Windows Vista font with a
+slash through the zero character.
+
+# Not a standard build. These are third-party binary artifacts, we just need
+# to copy them.
+%build
+rm -rf "${RPM_TMP}/${RPM_PATH}/"
+mkdir -p "${RPM_TMP}/${RPM_PATH}"
+tar --strip-components=1 -C "${RPM_TMP}/${RPM_PATH}" -xf "${TAR_PATH}"
+
+%files
+%defattr(-,root,root)
+%{_datadir}/fonts/truetype/*
+
+%changelog
+* Tue Jul 4 2017 chick.jon@gmail.com
+- Initial commit:
+EOM
+
+echo -e DONE
