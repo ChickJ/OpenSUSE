@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# This script will provision all the needed files to make an RPM package
+# for the Microsoft SegoeUI font.
+SCRIPT_DIR=$(dirname $(realpath -s "$0"))
+PKG_DIR=$(dirname "${SCRIPT_DIR}")
+SUSE_DIR=$(dirname "${PKG_DIR}")
+
+# ******************************************************************************
+# BEGIN Variables
+# ******************************************************************************
+RPM_DIR="${PKG_DIR}/.Build/RPM"
+RPM_NAME=microsoft-segoeui-truetype-fonts
+RPM_RELEASE=1
+RPM_VERSION=0.0.1
+RPM_PATH=${RPM_NAME}-${RPM_VERSION}
+RPM_SOURCES="${PKG_DIR}/.Build/RPM/SOURCES"
+RPM_SPECS="${PKG_DIR}/.Build/RPM/SPECS"
+RPM_TMP="${PKG_DIR}/.Build/RPM/tmp"
+
+SPEC_PATH="${RPM_SPECS}/${RPM_PATH}.spec"
+TAR_PATH="${RPM_SOURCES}/${RPM_PATH}.tar.gz"
+SOURCES_TAR="${RPM_SOURCES}/${RPM_PATH}.tar.gz"
+# ******************************************************************************
+# END Variables
+# ******************************************************************************
+
+# Print header
+echo -e Provisioning ${RPM_NAME} rpmbuild files . . .
+
+# Copy private files to build files.
+rsync -r "${SCRIPT_DIR}/Copyrighted/" "${SCRIPT_DIR}/Files/"
+
+# Ensure the RPM build environment exists
+mkdir -p "${RPM_DIR}/"{BUILD,SPECS,SRPMS,SOURCES,tmp/${RPM_PATH}}
+if [ ! -L "${PKG_DIR}/.Build/RPM/RPMS" ]; then
+  ln -s "${SUSE_DIR}/Tumbleweed/RPMS/" "${PKG_DIR}/.Build/RPM/RPMS"
+fi
+
+# Compress all the build artifacts for use as a TAR file.
+rm -f "${TAR_PATH}"
+tar -C "${SCRIPT_DIR}" -zcf "${TAR_PATH}" Files
+
+# Generate the spec file
+cat > "${SPEC_PATH}" <<EOM
+%define _topdir ${RPM_DIR}
+%define _tmppath ${RPM_TMP}
+%define buildroot ${RPM_TMP}/${RPM_PATH}
+
+BuildArch: noarch
+BuildRoot: %{buildroot}
+Group: System/X11/Fonts
+License: Proprietary
+Name: ${RPM_NAME}
+Prefix: /usr
+Release: ${RPM_RELEASE}
+Source0: file://${TAR_PATH}
+Summary: Microsoft SegoeUI Font
+Vendor: Microsoft
+Version: ${RPM_VERSION}
+Url: https://www.microsoft.com/typography/fonts/family.aspx?FID=331
+
+%description
+Segoe UI is a member of the Segoe family used in Microsoft products for user
+interface text, as well as for some online user assistance material, intended
+to improve the consistency in how users see all text across all languages. It
+is distinguishable from its predecessor Tahoma and the OS X user interface font
+Lucida Grande by its rounder letters. Segoe UI was produced by Monotype Imaging.
+
+# Not a standard build. These are third-party binary artifacts, we just need
+# to copy them.
+%build
+rm -rf "${RPM_TMP}/${RPM_PATH}/"
+mkdir -p "${RPM_TMP}/${RPM_PATH}"
+tar --strip-components=1 -C "${RPM_TMP}/${RPM_PATH}" -xf "${TAR_PATH}"
+
+%files
+%defattr(-,root,root)
+%{_datadir}/fonts/truetype/*
+
+%post
+fc-cache -f -v
+
+%postun
+fc-cache -f -v
+
+%changelog
+* Tue Jul 5 2017 chick.jon@gmail.com
+- Initial commit:
+EOM
+
+echo -e DONE
