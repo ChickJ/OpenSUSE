@@ -4,6 +4,7 @@
 # for the Microsoft Consolas font.
 SCRIPT_DIR=$(dirname $(realpath -s "$0"))
 PKG_DIR=$(dirname "${SCRIPT_DIR}")
+SUSE_DIR=$(dirname "${PKG_DIR}")
 
 # ******************************************************************************
 # BEGIN Variables
@@ -28,14 +29,17 @@ SOURCES_TAR="${RPM_SOURCES}/${RPM_PATH}.tar.gz"
 echo -e Provisioning ${RPM_NAME} rpmbuild files . . .
 
 # Copy private files to build files.
-rsync -r "${SCRIPT_DIR}/Private/" "${SCRIPT_DIR}/Build/"
+rsync -r "${SCRIPT_DIR}/Copyrighted/" "${SCRIPT_DIR}/Files/"
 
 # Ensure the RPM build environment exists
-mkdir -p "${RPM_DIR}/"{BUILD,RPMS,SPECS,SRPMS,SOURCES,tmp/${RPM_PATH}}
+mkdir -p "${RPM_DIR}/"{BUILD,SPECS,SRPMS,SOURCES,tmp/${RPM_PATH}}
+if [ ! -L "${PKG_DIR}/.Build/RPM/RPMS" ]; then
+  ln -s "${SUSE_DIR}/Tumbleweed/RPMS/" "${PKG_DIR}/.Build/RPM/RPMS"
+fi
 
 # Compress all the build artifacts for use as a TAR file.
 rm -f "${TAR_PATH}"
-tar -C "${SCRIPT_DIR}" -zcf "${TAR_PATH}" Build
+tar -C "${SCRIPT_DIR}" -zcf "${TAR_PATH}" Files
 
 # Generate the spec file
 cat > "${SPEC_PATH}" <<EOM
@@ -74,6 +78,12 @@ tar --strip-components=1 -C "${RPM_TMP}/${RPM_PATH}" -xf "${TAR_PATH}"
 %files
 %defattr(-,root,root)
 %{_datadir}/fonts/truetype/*
+
+%post
+fc-cache -f -v
+
+%postun
+fc-cache -f -v
 
 %changelog
 * Tue Jul 4 2017 chick.jon@gmail.com
