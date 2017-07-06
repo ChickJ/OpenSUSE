@@ -1,6 +1,0 @@
-#!/bin/bash
-# This script will tar up files and save them into the rpm/SOURCES directory.
-
-CWD=$(dirname $(realpath -s $0))
-tar cvf $CWD/rpm/SOURCES/microsoft-consolas-truetype-fonts-0.0.1.tar.gz -C "$CWD/Files" microsoft-consolas-truetype-fonts-0.0.1/
-tar cvf $CWD/rpm/SOURCES/microsoft-dotnet-2.0.0.preview1.005743.tar.gz -C "$CWD/Files" microsoft-dotnet-2.0.0.preview1.005743/
