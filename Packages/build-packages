@@ -1,5 +1,4 @@
 #!/bin/bash
 # This script will build all repository RPMs
-
-find rpm -type f -name '*.spec' -print0 | xargs -0 rpmbuild -bb --clean
-
+SCRIPT_DIR=$(dirname $(realpath -s "$0"))
+find "${SCRIPT_DIR}/.Build" -type f -name '*.spec' -print0 | xargs -0 rpmbuild -bb --clean
