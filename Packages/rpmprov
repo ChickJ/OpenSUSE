@@ -1,0 +1,8 @@
+#!/bin/bash
+# This script will build all repository RPMs
+SCRIPT_DIR=$(dirname $(realpath -s "$0"))
+
+for pkg_dir in Consolas SegoeUI ; do
+  "${SCRIPT_DIR}/$pkg_dir/rpmprov"
+done
+
