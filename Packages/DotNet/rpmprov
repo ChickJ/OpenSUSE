@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Pattern:
+#  - Third party source
+#  - Original source downloaded as .tar.gz
+#  - Original TAR does not meet RPM folder needs and we do not rebuild the tar.
+
+# This script will provision all the needed files to make an RPM package
+# for Microsoft .NET Core.
+SCRIPT_DIR=$(dirname $(realpath -s "$0"))
+PKG_DIR=$(dirname "${SCRIPT_DIR}")
+SUSE_DIR=$(dirname "${PKG_DIR}")
+
+# ******************************************************************************
+# BEGIN Variables
+# ******************************************************************************
+RPM_ARCH=x86_64
+RPM_DIR="${PKG_DIR}/.Build/RPM"
+RPM_NAME=microsoft-dotnet-sdk
+RPM_RELEASE=6497.preview2
+RPM_VERSION=2.0.0
+RPM_PATH=${RPM_NAME}-${RPM_VERSION}
+RPM_FULLNAME=${RPM_NAME}-${RPM_VERSION}-${RPM_RELEASE}.${RPM_ARCH}
+RPM_SOURCES="${PKG_DIR}/.Build/RPM/SOURCES"
+RPM_SPECS="${PKG_DIR}/.Build/RPM/SPECS"
+RPM_TMP="${PKG_DIR}/.Build/RPM/tmp"
+RPM_BUILDROOT="${RPM_TMP}/${RPM_NAME}-${RPM_VERSION}"
+
+SRC_NAME="dotnet-sdk-2.0.0-preview2-006497-linux-x64.tar.gz"
+SRC_PATH="${SCRIPT_DIR}/${SRC_NAME}"
+
+SPEC_PATH="${RPM_SPECS}/${RPM_PATH}.spec"
+TAR_NAME="${RPM_NAME}-${RPM_VERSION}-preview2-006497.tar.gz"
+TAR_PATH="${RPM_SOURCES}/${TAR_NAME}"
+SOURCES_TAR="${RPM_SOURCES}/${TAR_NAME}"
+# ******************************************************************************
+# END Variables
+# ******************************************************************************
+
+# Print header
+echo -e Provisioning ${RPM_FULLNAME} rpmbuild files . . .
+
+# Ensure the RPM build environment exists
+mkdir -p "${RPM_DIR}/"{BUILD,SPECS,SRPMS,SOURCES,tmp/${RPM_PATH}}
+if [ ! -L "${RPM_DIR}/RPMS" ]; then
+  ln -s "${SUSE_DIR}/Tumbleweed/RPMS" "${RPM_DIR}/RPMS"
+fi
+
+# Compress all the build artifacts for use as a TAR file.
+ln -sf "${SRC_PATH}" "${TAR_PATH}"
+
+# Generate the spec file
+cat > "${SPEC_PATH}" <<EOM
+%define _topdir ${RPM_DIR}
+%define _tmppath ${RPM_TMP}
+%define buildroot ${RPM_TMP}/${RPM_PATH}
+
+BuildArch: x86_64
+BuildRoot: %{buildroot}
+License: MIT
+Name: ${RPM_NAME}
+Prefix: /usr/lib64
+Release: ${RPM_RELEASE}
+Source0: file://${TAR_PATH}
+Summary: Microsoft .Net Core
+Vendor: Microsoft
+Version: ${RPM_VERSION}
+Url: https://www.microsoft.com/net/core/platform
+
+%description
+.NET Core is a blazing fast, lightweight and modular platform for creating web
+applications and services that run on Windows, Linux and Mac.
+
+%prep
+rm -rf '${RPM_BUILDROOT}/'
+mkdir -p '${RPM_BUILDROOT}'
+cd '${RPM_BUILDROOT}'
+mkdir -p usr/lib64/dotnet
+cd usr/lib64/dotnet
+/usr/bin/gzip -dc '${TAR_PATH}' | /usr/bin/tar -xof -
+
+# Create link to dotnet
+mkdir -p '${RPM_BUILDROOT}/usr/bin'
+cd '${RPM_BUILDROOT}/usr/bin'
+ln -s "/usr/lib64/dotnet/dotnet" dotnet
+
+%files
+%defattr(-,root,root)
+/usr/bin/dotnet
+/usr/lib64/dotnet/*
+
+%changelog
+* Tue Jul 17 2017 chick.jon@gmail.com
+- Initial commit:
+EOM
+
+echo -e DONE
