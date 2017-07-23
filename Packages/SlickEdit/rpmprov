@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# This shell script creates an RPM spec file `slickedit-pro.21.0.3-0.1.spec`
+# customized for the computer running the script. The resulting spec file is
+# valid rpmbuild input.
+#
+# Example: `rpmbuild -bb slickedit-pro.21.0.3-0.1.spec`
+#
+# Recipe:
+#  - Download `se_21000300_linux64.tar.gz` from https://www.slickedit.com.
+#  - Download patch `hotfix_se2103_3_cumulative.zip`
+#  - Follow normal `vsinst` installer process.
+#  - Run SlickEdit, make modifications and apply patches.
+#  - Repack SlickEdit directories into `rpmbuild` friendly TAR.
+#
+# Installation:
+#  - Install, e.g. zypper
+#  - Run SlickEdit
+#  - Import default options
+#  - Apply hotfixes
+#
+# Note: SlickEdit is proprietary software. We have no rights to these files.
+#       There are no SlickEdit files here; this program works with your personal
+#       SlickEdit installation. You can modify this script to repackage your
+#       own licensed copy for personal use.
+#
+SCRIPT_DIR=$(dirname $(realpath -s "$0"))
+PKG_DIR=$(dirname "${SCRIPT_DIR}")
+SUSE_DIR=$(dirname "${PKG_DIR}")
+
+# ******************************************************************************
+# BEGIN Variables
+# ******************************************************************************
+RPM_ARCH=x86_64
+RPM_DIR="${PKG_DIR}/.Build/RPM"
+RPM_NAME=slickedit-pro
+RPM_RELEASE=1
+RPM_VERSION=21.0.3
+RPM_PATH=${RPM_NAME}-${RPM_VERSION}
+RPM_FULLNAME=${RPM_NAME}-${RPM_VERSION}-${RPM_RELEASE}.${RPM_ARCH}
+RPM_SOURCES="${PKG_DIR}/.Build/RPM/SOURCES"
+RPM_SPECS="${PKG_DIR}/.Build/RPM/SPECS"
+RPM_TMP="${PKG_DIR}/.Build/RPM/tmp"
+RPM_BUILDROOT="${RPM_TMP}/${RPM_NAME}-${RPM_VERSION}"
+
+SRC_NAME="slickedit-pro-21.0.3.tar.gz"
+SRC_PATH="${SCRIPT_DIR}/${SRC_NAME}"
+
+SPEC_PATH="${RPM_SPECS}/${RPM_PATH}.spec"
+TAR_NAME="${SRC_NAME}"
+TAR_PATH="${RPM_SOURCES}/${TAR_NAME}"
+SOURCES_TAR="${RPM_SOURCES}/${TAR_NAME}"
+# ******************************************************************************
+# END Variables
+# ******************************************************************************
+
+# Print header
+echo -e Provisioning ${RPM_FULLNAME} rpmbuild files . . .
+
+# Ensure the RPM build environment exists
+mkdir -p "${RPM_DIR}/"{BUILD,SPECS,SRPMS,SOURCES,tmp/${RPM_PATH}}
+if [ ! -L "${RPM_DIR}/RPMS" ]; then
+  ln -s "${SUSE_DIR}/Tumbleweed/RPMS" "${RPM_DIR}/RPMS"
+fi
+
+# Compress all the build artifacts for use as a TAR file.
+ln -sf "${SRC_PATH}" "${TAR_PATH}"
+
+# Generate the spec file
+cat > "${SPEC_PATH}" <<EOM
+%define _topdir ${RPM_DIR}
+%define _tmppath ${RPM_TMP}
+%define buildroot ${RPM_TMP}/${RPM_PATH}
+
+BuildArch: x86_64
+BuildRoot: %{buildroot}
+License: Proprietary
+Name: ${RPM_NAME}
+Prefix: /usr/lib64
+Release: ${RPM_RELEASE}
+Source0: file://${TAR_PATH}
+Summary: Visual SlickEdit Pro
+Vendor: SlickEdit
+Version: ${RPM_VERSION}
+Url: https://www.slickedit.com
+
+%description
+Designed by developers for developers, SlickEdit’s award-winning source code and
+text editor is respected for its rich set of coding tools and powerful
+time-saving programming features. A true cross-platform, multi-language editor,
+SlickEdit gives programmers the ability to code in over 40 languages on 9
+platforms.
+
+# Not a standard build. These are third-party binary artifacts, we just need
+# to copy them.
+%build
+#rm -rf "${RPM_TMP}/${RPM_PATH}/"
+#mkdir -p "${RPM_TMP}/${RPM_PATH}"
+tar -C "${RPM_TMP}/${RPM_PATH}" -xf "${TAR_PATH}"
+
+%files
+%defattr(-,root,root)
+/usr/*
+
+%changelog
+* Tue Jul 21 2017 chick.jon@gmail.com
+- Initial commit:
+EOM
+
+echo -e DONE
