@@ -17,7 +17,7 @@ SUSE_DIR=$(dirname "${PKG_DIR}")
 RPM_ARCH=x86_64
 RPM_DIR="${PKG_DIR}/.Build/RPM"
 RPM_NAME=microsoft-dotnet-sdk
-RPM_RELEASE=6497.preview2
+RPM_RELEASE=1
 RPM_VERSION=2.0.0
 RPM_PATH=${RPM_NAME}-${RPM_VERSION}
 RPM_FULLNAME=${RPM_NAME}-${RPM_VERSION}-${RPM_RELEASE}.${RPM_ARCH}
@@ -26,11 +26,11 @@ RPM_SPECS="${PKG_DIR}/.Build/RPM/SPECS"
 RPM_TMP="${PKG_DIR}/.Build/RPM/tmp"
 RPM_BUILDROOT="${RPM_TMP}/${RPM_NAME}-${RPM_VERSION}"
 
-SRC_NAME="dotnet-sdk-2.0.0-preview2-006497-linux-x64.tar.gz"
+SRC_NAME="dotnet-sdk-2.0.0-linux-x64.tar.gz"
 SRC_PATH="${SCRIPT_DIR}/${SRC_NAME}"
 
 SPEC_PATH="${RPM_SPECS}/${RPM_PATH}.spec"
-TAR_NAME="${RPM_NAME}-${RPM_VERSION}-preview2-006497.tar.gz"
+TAR_NAME="${RPM_NAME}-${RPM_VERSION}.tar.gz"
 TAR_PATH="${RPM_SOURCES}/${TAR_NAME}"
 SOURCES_TAR="${RPM_SOURCES}/${TAR_NAME}"
 # ******************************************************************************
@@ -79,6 +79,9 @@ mkdir -p usr/lib64/dotnet
 cd usr/lib64/dotnet
 /usr/bin/gzip -dc '${TAR_PATH}' | /usr/bin/tar -xof -
 
+# Copy my personal additions
+rsync -r "${SCRIPT_DIR}/Files/" "${RPM_BUILDROOT}/"
+
 # Create link to dotnet
 mkdir -p '${RPM_BUILDROOT}/usr/bin'
 cd '${RPM_BUILDROOT}/usr/bin'
@@ -86,10 +89,13 @@ ln -s "/usr/lib64/dotnet/dotnet" dotnet
 
 %files
 %defattr(-,root,root)
-/usr/bin/dotnet
+/usr/bin/*
 /usr/lib64/dotnet/*
 
 %changelog
+* Tue Aug 15 2017 chick.jon@gmail.com
+- Upgrade to official 2.0 release.
+- Add MSBuild script to /usr/bin
 * Tue Jul 17 2017 chick.jon@gmail.com
 - Initial commit:
 EOM

@@ -42,6 +42,7 @@ to improve the consistency in how users see all text across all languages. It
 is distinguishable from its predecessor Tahoma and the OS X user interface font
 Lucida Grande by its rounder letters. Segoe UI was produced by Monotype Imaging.
 
+#### [microsoft-dotnet-2.0.0-x86_64](https://www.microsoft.com/net/core/platform)
 #### [microsoft-dotnet-2.0.0.preview1.005743-1-x86_64](https://www.microsoft.com/net/core/platform)
 .NET Core is a blazing fast, lightweight and modular platform for creating web
 applications and services that run on Windows, Linux and Mac.
